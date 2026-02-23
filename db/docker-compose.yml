@@ -1,0 +1,32 @@
+services:
+  mysql:
+    image: mysql:latest
+    container_name: jobs-spring-batch-mysql
+    restart: unless-stopped
+    environment:
+      # Senha root conforme solicitado
+      MYSQL_ROOT_PASSWORD: "root1234"
+      # Permite acesso root remotos (se necessário). Remova se não quiser permitir '%'.
+      MYSQL_ROOT_HOST: "%"
+    ports:
+      - "3306:3306"
+    networks:
+      - docker-intranet
+    volumes:
+      # Persistência dos dados do MySQL
+      - db_data:/var/lib/mysql
+      # Script de inicialização para criar schemas/usuários automaticamente
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+volumes:
+  db_data:
+    driver: local
+networks:
+  docker-intranet:
+    name: docker-intranet
+    driver: bridge
